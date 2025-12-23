@@ -1,0 +1,251 @@
+﻿@model StrateraPos.Models.User
+
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-pencil-square"></i> Edit User</h2>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+
+        <!-- Error Messages -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Please correct the following errors:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Edit User Information</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" id="editUserForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    <input type="hidden" asp-for="PasswordHash" />
+                    <input type="hidden" asp-for="PasswordSalt" />
+                    <input type="hidden" asp-for="FailedLoginAttempts" />
+                    <input type="hidden" asp-for="LockedUntil" />
+                    <input type="hidden" asp-for="LastLoginAt" />
+                    <input type="hidden" asp-for="IsDeleted" />
+
+                    <!-- Account Status Alert -->
+                    @if (Model.IsLocked)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="bi bi-lock me-2"></i>
+                            <strong>Account Locked:</strong> This account is locked until @Model.LockedUntil.GetValueOrDefault().ToString("MMM dd, yyyy hh:mm tt")
+                            <form asp-action="UnlockAccount" asp-route-id="@Model.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-light ms-2">
+                                    <i class="bi bi-unlock"></i> Unlock Account
+                                </button>
+                            </form>
+                        </div>
+                    }
+
+                    <!-- Personal Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-person"></i> Personal Information
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FullName" class="form-label">
+                                Full Name <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="FullName" class="form-control" placeholder="Enter full name" required autofocus />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label">
+                                Email Address <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="user@example.com" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">
+                                Phone Number <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="+233 XX XXX XXXX" value="@(Model.PhoneNumber ?? "")" />
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Username" class="form-label">
+                                Username <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Username" class="form-control" placeholder="Enter username" required />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Role & Permissions -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-shield"></i> Role & Permissions
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Role" class="form-label">
+                                User Role <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="Role" class="form-select" asp-items="Html.GetEnumSelectList<StrateraPos.Models.UserRole>()" required>
+                                <option value="">Select role...</option>
+                            </select>
+                            <span asp-validation-for="Role" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label d-block">Status</label>
+                            <div class="form-check form-switch mt-2">
+                                <input type="checkbox" name="IsActive" value="true" @(Model.IsActive ? "checked" : "") class="form-check-input" />
+                                <input type="hidden" name="IsActive" value="false" />
+                                <label class="form-check-label">
+                                    Account Active
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Role Description -->
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong id="roleDescription"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-clock-history"></i> Account Information
+                            </h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Created Date</label>
+                            <p class="form-control-plaintext">@Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")</p>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Last Login</label>
+                            <p class="form-control-plaintext">
+                                @if (Model.LastLoginAt.HasValue)
+                                {
+                                    @Model.LastLoginAt.Value.ToString("MMM dd, yyyy hh:mm tt")
+                                }
+                                else
+                                {
+                                    <text>Never</text>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Failed Login Attempts</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge @(Model.FailedLoginAttempts > 0 ? "bg-danger" : "bg-success")">
+                                    @Model.FailedLoginAttempts
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> To change the password, use the "Reset Password" button from the users list.
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <a asp-action="ResetPassword" asp-route-id="@Model.Id" class="btn btn-warning btn-lg">
+                                <i class="bi bi-key"></i> Reset Password
+                            </a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="bi bi-check-circle"></i> Update User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Role description
+        function updateRoleDescription() {
+            const roleSelect = document.querySelector('select[name="Role"]');
+            const roleDescription = document.getElementById('roleDescription');
+            const descriptions = {
+                'Admin': 'Administrator: Full system access including user management, system settings, and all features.',
+                'Manager': 'Manager: Access to products, sales, inventory, suppliers, and reports. Cannot manage users or system settings.',
+                'Cashier': 'Cashier: Access to POS system for processing sales only. Limited access to other features.'
+            };
+            roleDescription.textContent = descriptions[roleSelect.value] || 'Select a role to see its permissions';
+        }
+
+        // Initialize on page load
+        updateRoleDescription();
+
+        // Update on change
+        document.querySelector('select[name="Role"]').addEventListener('change', updateRoleDescription);
+
+        // Form submission with loading state
+        document.getElementById('editUserForm').addEventListener('submit', function () {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+        });
+
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(function (alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+}

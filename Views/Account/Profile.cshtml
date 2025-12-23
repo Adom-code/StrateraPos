@@ -1,0 +1,154 @@
+﻿@model StrateraPos.Models.User
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-person-circle"></i> My Profile</h2>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-person-circle text-primary" style="font-size: 6rem;"></i>
+                    </div>
+                    <h4 class="mb-1">@Model.FullName</h4>
+                    <p class="text-muted mb-2">@@@Model.Username</p>
+                    <span class="badge bg-@(Model.Role == StrateraPos.Models.UserRole.Admin ? "danger" : Model.Role == StrateraPos.Models.UserRole.Manager ? "warning" : "info") fs-6">
+                        @Model.Role
+                    </span>
+                    <hr class="my-4">
+                    <div class="text-start">
+                        <p class="mb-2">
+                            <i class="bi bi-envelope text-primary me-2"></i>
+                            <strong>Email:</strong><br>
+                            <span class="ms-4">@Model.Email</span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-calendar-check text-success me-2"></i>
+                            <strong>Member Since:</strong><br>
+                            <span class="ms-4">@Model.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                        </p>
+                        @if (Model.LastLoginAt.HasValue)
+                        {
+                            <p class="mb-2">
+                                <i class="bi bi-clock text-info me-2"></i>
+                                <strong>Last Login:</strong><br>
+                                <span class="ms-4">@Model.LastLoginAt.Value.ToString("MMM dd, yyyy hh:mm tt")</span>
+                            </p>
+                        }
+                        <p class="mb-0">
+                            <i class="bi bi-shield-check text-warning me-2"></i>
+                            <strong>Status:</strong><br>
+                            <span class="ms-4">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-key"></i> Change Password
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="ChangePassword">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   name="currentPassword"
+                                   required
+                                   placeholder="Enter your current password" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   name="newPassword"
+                                   required
+                                   minlength="6"
+                                   placeholder="Enter new password (min. 6 characters)" />
+                            <small class="form-text text-muted">
+                                Password must be at least 6 characters long
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   name="confirmPassword"
+                                   required
+                                   minlength="6"
+                                   placeholder="Confirm your new password" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update Password
+                        </button>
+                        <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Security Tips -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-lock"></i> Security Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Use a strong password with at least 6 characters</li>
+                        <li>Include a mix of letters, numbers, and symbols</li>
+                        <li>Don't share your password with anyone</li>
+                        <li>Change your password regularly</li>
+                        <li>Always log out when you're done using the system</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,163 @@
+﻿@model IEnumerable<StrateraPos.Models.Category>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-folder"></i> Category Management</h2>
+    <a asp-action="Create" class="btn btn-success btn-lg">
+        <i class="bi bi-plus-circle"></i> Add New Category
+    </a>
+</div>
+
+<!-- Toast Notifications -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Success!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Categories Grid -->
+<div class="row g-3">
+    @if (Model.Any())
+    {
+        @foreach (var category in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title mb-1">
+                                    <i class="bi bi-folder-fill text-primary"></i>
+                                    @category.Name
+                                </h5>
+                                @if (!string.IsNullOrEmpty(category.Description))
+                                {
+                                    <p class="text-muted small mb-0">@category.Description</p>
+                                }
+                            </div>
+                            <span class="badge bg-info">
+                                @(category.Products?.Count ?? 0) Products
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@category.Id"
+                               class="btn btn-sm btn-outline-primary flex-fill">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <button onclick="deleteCategory(@category.Id, '@Html.Raw(category.Name.Replace("'", "\\'"))')"
+                                    class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-folder-x" style="font-size: 4rem; color: #dee2e6;"></i>
+                    <h4 class="mt-3 text-muted">No Categories Found</h4>
+                    <p class="text-muted">Start by creating your first product category</p>
+                    <a asp-action="Create" class="btn btn-success btn-lg mt-3">
+                        <i class="bi bi-plus-circle"></i> Create First Category
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function deleteCategory(id, name) {
+            if (!confirm(`Are you sure you want to delete category "${name}"?\n\nNote: You cannot delete categories that have products.`)) {
+                return;
+            }
+
+            // Get anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            fetch('/Categories/Delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id=${id}&__RequestVerificationToken=${encodeURIComponent(token || '')}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and reload
+                    showToast('success', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'An error occurred while deleting the category. Please try again.');
+            });
+        }
+
+        function showToast(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+            const title = type === 'success' ? 'Success!' : 'Error!';
+
+            const toast = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="bi ${icon} me-2"></i>
+                    <strong>${title}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            const container = document.querySelector('.container');
+            container.insertAdjacentHTML('afterbegin', toast);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alertElement = container.querySelector('.alert');
+                if (alertElement) {
+                    alertElement.classList.remove('show');
+                    setTimeout(() => alertElement.remove(), 150);
+                }
+            }, 5000);
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            });
+        });
+    </script>
+
+    <!-- Anti-forgery token for AJAX requests -->
+    @Html.AntiForgeryToken()
+}

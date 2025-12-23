@@ -1,0 +1,94 @@
+/* site.css - POS theme */
+body, html {
+    height: 100%;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+/* layout */
+#pos-app {
+    overflow: hidden;
+}
+/* Sidebar */
+.pos-sidebar {
+    width: 240px;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+}
+
+    .pos-sidebar.collapsed {
+        width: 72px;
+        min-width: 72px;
+    }
+
+    .pos-sidebar .sidebar-brand img {
+        max-height: 42px;
+    }
+
+    .pos-sidebar .nav-link {
+        padding: 12px 16px;
+        border-radius: 6px;
+    }
+
+        .pos-sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+        }
+        /* Active state styling */
+        .pos-sidebar .nav-link.active {
+            background: rgba(255,255,255,0.15) !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            border-left: 4px solid #0d6efd !important;
+            padding-left: 12px !important;
+        }
+/* Topbar */
+.pos-topbar {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+/* Content area */
+.pos-content {
+    background: #f5f7fb;
+    flex: 1 1 auto;
+}
+/* Cards */
+.card.bg-primary {
+    background: linear-gradient(135deg,#0d6efd,#0069d9);
+}
+
+.card.bg-success {
+    background: linear-gradient(135deg,#28a745,#20a03a);
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg,#17a2b8,#0f97a2);
+}
+
+.card .display-4 {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+/* Responsive */
+@media (max-width: 992px) {
+    .pos-sidebar {
+        position: absolute;
+        z-index: 1050;
+        left: -260px;
+        transition: left .2s ease;
+    }
+
+        .pos-sidebar.collapsed {
+            left: 0;
+        }
+}
+/* small helpers */
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.table thead th {
+    font-weight: 600;
+}

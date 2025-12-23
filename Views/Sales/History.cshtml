@@ -1,0 +1,212 @@
+﻿@model IEnumerable<StrateraPos.Models.Sale>
+
+@{
+    ViewData["Title"] = "Sales History";
+    var settings = ViewBag.Settings as StrateraPOS_System.Models.BusinessSettings;
+    var startDate = ViewBag.StartDate as DateTime?;
+    var endDate = ViewBag.EndDate as DateTime?;
+    var paymentMethodFilter = ViewBag.PaymentMethod as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-clock-history"></i> Sales History</h2>
+    <a asp-action="Index" class="btn btn-success btn-lg">
+        <i class="bi bi-cart4"></i> Back to POS
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="startDate" class="form-control" value="@startDate?.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="endDate" class="form-control" value="@endDate?.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Payment Method</label>
+                <select name="paymentMethod" class="form-select">
+                    <option value="">All Methods</option>
+                    @if (paymentMethodFilter == "Cash")
+                    {
+                        <option value="Cash" selected>Cash</option>
+                    }
+                    else
+                    {
+                        <option value="Cash">Cash</option>
+                    }
+                    @if (paymentMethodFilter == "Card")
+                    {
+                        <option value="Card" selected>Card</option>
+                    }
+                    else
+                    {
+                        <option value="Card">Card</option>
+                    }
+                    @if (paymentMethodFilter == "MobileMoney")
+                    {
+                        <option value="MobileMoney" selected>Mobile Money</option>
+                    }
+                    else
+                    {
+                        <option value="MobileMoney">Mobile Money</option>
+                    }
+                    @if (paymentMethodFilter == "Bank Transfer")
+                    {
+                        <option value="Bank Transfer" selected>Bank Transfer</option>
+                    }
+                    else
+                    {
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+@if (Model.Any())
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@Model.Count()</h3>
+                    <small>Total Sales</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@(settings?.CurrencySymbol ?? "₵")@Model.Sum(s => s.GrandTotal).ToString("N2")</h3>
+                    <small>Total Revenue</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@Model.Sum(s => s.TotalItems)</h3>
+                    <small>Items Sold</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning">
+                <div class="card-body text-center">
+                    <h3 class="mb-0">@(settings?.CurrencySymbol ?? "₵")@(Model.Any() ? Model.Average(s => s.GrandTotal).ToString("N2") : "0.00")</h3>
+                    <small>Average Sale</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Sales Table -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Receipt #</th>
+                            <th>Date & Time</th>
+                            <th>Items</th>
+                            <th>Subtotal</th>
+                            <th>Discount</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Cashier</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sale in Model)
+                        {
+                            <tr>
+                                <td><strong>@sale.ReceiptNumber</strong></td>
+                                <td>
+                                    @sale.Date.ToString("MMM dd, yyyy")
+                                    <br>
+                                    <small class="text-muted">@sale.Date.ToString("hh:mm tt")</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        @sale.TotalProducts product(s)
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">@sale.TotalItems unit(s)</small>
+                                </td>
+                                <td>@(settings?.CurrencySymbol ?? "₵")@sale.SubTotal.ToString("N2")</td>
+                                <td>
+                                    @if (sale.Discount > 0)
+                                    {
+                                        <span class="text-danger">-@(settings?.CurrencySymbol ?? "₵")@sale.Discount.ToString("N2")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td><strong class="text-success">@(settings?.CurrencySymbol ?? "₵")@sale.GrandTotal.ToString("N2")</strong></td>
+                                <td>
+                                    <span class="badge bg-secondary">@sale.PaymentMethod</span>
+                                </td>
+                                <td>
+                                    @if (sale.User != null)
+                                    {
+                                        @sale.User.Username
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Admin</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="Receipt" asp-route-id="@sale.Id"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View Receipt">
+                                        <i class="bi bi-receipt"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h4 class="mt-3 text-muted">No Sales Found</h4>
+                <p class="text-muted">
+                    @if (startDate != null || endDate != null || !string.IsNullOrEmpty(paymentMethodFilter))
+                    {
+                        <text>Try adjusting your filter criteria</text>
+                    }
+                    else
+                    {
+                        <text>Start making sales in the POS</text>
+                    }
+                </p>
+                <a asp-action="Index" class="btn btn-success btn-lg mt-3">
+                    <i class="bi bi-cart4"></i> Go to POS
+                </a>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,408 @@
+﻿@model StrateraPos.Models.Supplier
+
+@{
+    ViewData["Title"] = "Supplier Details";
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-truck"></i> Supplier Details
+            </h2>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="mb-3">
+            @if (Model.IsActive)
+            {
+                <span class="badge bg-success fs-6">
+                    <i class="bi bi-check-circle"></i> Active Supplier
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6">
+                    <i class="bi bi-x-circle"></i> Inactive Supplier
+                </span>
+            }
+
+            @if (Model.IsOverCreditLimit)
+            {
+                <span class="badge bg-danger fs-6 ms-2">
+                    <i class="bi bi-exclamation-triangle"></i> Over Credit Limit
+                </span>
+            }
+
+            @if (Model.HasOutstandingBalance)
+            {
+                <span class="badge bg-warning text-dark fs-6 ms-2">
+                    <i class="bi bi-cash-stack"></i> Outstanding Balance
+                </span>
+            }
+        </div>
+
+        <div class="row">
+            <!-- Main Information Card -->
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Supplier Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Supplier Name:</dt>
+                            <dd class="col-sm-8"><strong class="fs-5">@Model.Name</strong></dd>
+
+                            <dt class="col-sm-4">Contact Person:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.ContactPerson))
+                                {
+                                    <text>@Model.ContactPerson</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Phone:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.Phone))
+                                {
+                                    <a href="tel:@Model.Phone" class="text-decoration-none">
+                                        <i class="bi bi-telephone"></i> @Model.Phone
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <a href="mailto:@Model.Email" class="text-decoration-none">
+                                        <i class="bi bi-envelope"></i> @Model.Email
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Tax ID/TIN:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.TaxId))
+                                {
+                                    <text>@Model.TaxId</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <hr class="my-3">
+
+                            <dt class="col-sm-4">Address:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.Address))
+                                {
+                                    <text>@Model.Address</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">City:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.City))
+                                {
+                                    <text>@Model.City</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Country:</dt>
+                            <dd class="col-sm-8">
+                                @if (!string.IsNullOrEmpty(Model.Country))
+                                {
+                                    <text>@Model.Country</text>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+
+                            <hr class="my-3">
+
+                            <dt class="col-sm-4">Date Added:</dt>
+                            <dd class="col-sm-8">
+                                <i class="bi bi-calendar-plus text-muted"></i>
+                                @Model.CreatedAt.ToString("MMM dd, yyyy hh:mm tt")
+                            </dd>
+
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <dt class="col-sm-4">Last Updated:</dt>
+                                <dd class="col-sm-8">
+                                    <i class="bi bi-calendar-check text-muted"></i>
+                                    @Model.UpdatedAt.Value.ToString("MMM dd, yyyy hh:mm tt")
+                                </dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial & Stats Cards -->
+            <div class="col-lg-4 mb-4">
+                <!-- Financial Info Card -->
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Financial Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Payment Terms</small>
+                            @if (!string.IsNullOrEmpty(Model.PaymentTerms))
+                            {
+                                <strong class="text-primary">@Model.PaymentTerms</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-muted">Not specified</strong>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Credit Limit</small>
+                            @if (Model.CreditLimit.HasValue)
+                            {
+                                <strong class="text-primary">₵@Model.CreditLimit.Value.ToString("N2")</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-muted">Not set</strong>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Current Balance</small>
+                            @if (Model.CurrentBalance > 0)
+                            {
+                                <strong class="text-danger">
+                                    <i class="bi bi-arrow-down-circle"></i> ₵@Model.CurrentBalance.ToString("N2")
+                                </strong>
+                                <br>
+                                <small class="text-muted">(Amount owed to supplier)</small>
+                            }
+                            else if (Model.CurrentBalance < 0)
+                            {
+                                <strong class="text-success">
+                                    <i class="bi bi-arrow-up-circle"></i> ₵@Math.Abs(Model.CurrentBalance).ToString("N2")
+                                </strong>
+                                <br>
+                                <small class="text-muted">(Credit from supplier)</small>
+                            }
+                            else
+                            {
+                                <strong class="text-muted">₵0.00</strong>
+                            }
+                        </div>
+
+                        @if (Model.CreditLimit.HasValue && Model.CurrentBalance > 0)
+                        {
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Credit Available</small>
+                                <strong class="@(Model.CreditAvailable < 0 ? "text-danger" : "text-success")">
+                                    ₵@Model.CreditAvailable.ToString("N2")
+                                </strong>
+                            </div>
+                        }
+
+                        <hr>
+
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Bank Name</small>
+                            @if (!string.IsNullOrEmpty(Model.BankName))
+                            {
+                                <strong>@Model.BankName</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-muted">Not provided</strong>
+                            }
+                        </div>
+
+                        <div>
+                            <small class="text-muted d-block">Account Number</small>
+                            @if (!string.IsNullOrEmpty(Model.AccountNumber))
+                            {
+                                <strong>@Model.AccountNumber</strong>
+                            }
+                            else
+                            {
+                                <strong class="text-muted">Not provided</strong>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Count Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-box-seam"></i> Products</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h2 class="text-info mb-0">@Model.Products.Count</h2>
+                            <small class="text-muted">Product@(Model.Products.Count != 1 ? "s" : "") supplied</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-warning">
+                            <h5 class="mb-0"><i class="bi bi-sticky"></i> Notes</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 white-space-pre-line">@Model.Notes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Products List -->
+        @if (Model.Products.Any())
+        {
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0"><i class="bi bi-box-seam"></i> Products from this Supplier (@Model.Products.Count)</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var product in Model.Products.OrderBy(p => p.Name))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@product.Name</strong>
+                                                    @if (!string.IsNullOrEmpty(product.Description))
+                                                    {
+                                                        <br>
+                                                        <small class="text-muted">@product.Description</small>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (product.Category != null)
+                                                    {
+                                                        <span class="badge bg-info">@product.Category.Name</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">-</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <strong class="text-success">₵@product.Price.ToString("N2")</strong>
+                                                </td>
+                                                <td>
+                                                    @if (product.Stock == 0)
+                                                    {
+                                                        <span class="badge bg-danger">Out of Stock</span>
+                                                    }
+                                                    else if (product.Stock <= product.LowStockThreshold)
+                                                    {
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="bi bi-exclamation-circle"></i> @product.Stock
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-success">@product.Stock</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (product.IsActive)
+                                                    {
+                                                        <span class="badge bg-success">Active</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">Inactive</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-box-seam" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <h5 class="mt-3 text-muted">No Products Yet</h5>
+                            <p class="text-muted">This supplier doesn't have any products assigned yet.</p>
+                            <a asp-controller="Products" asp-action="Create" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Add Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .white-space-pre-line {
+        white-space: pre-line;
+    }
+</style>

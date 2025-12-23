@@ -1,0 +1,133 @@
+﻿@model StrateraPos.Models.Category
+
+@{
+    ViewData["Title"] = "Add New Category";
+}
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <!-- Error Messages -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Error!</strong> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-folder-plus"></i> Add New Category</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">
+                            Category Name <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Name"
+                               class="form-control form-control-lg"
+                               placeholder="e.g. Beverages, Food, Electronics"
+                               autofocus />
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label">
+                            Description <span class="text-muted">(Optional)</span>
+                        </label>
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Brief description of this category"
+                                  maxlength="500"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                        <div class="form-text">
+                            <span id="charCount">0</span>/500 characters
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Tip:</strong> Categories help organize your products and make them easier to find in the POS system.
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                            <i class="bi bi-check-circle"></i> Create Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6><i class="bi bi-lightbulb text-warning"></i> Category Examples</h6>
+                <ul class="mb-0 small">
+                    <li><strong>Beverages:</strong> Soft drinks, water, juices</li>
+                    <li><strong>Food:</strong> Snacks, bread, canned goods</li>
+                    <li><strong>Household:</strong> Cleaning supplies, toiletries</li>
+                    <li><strong>Electronics:</strong> Phones, accessories, gadgets</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character counter for description
+            const descriptionField = document.querySelector('textarea[name="Description"]');
+            const charCount = document.getElementById('charCount');
+
+            if (descriptionField && charCount) {
+                descriptionField.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+                // Initialize count
+                charCount.textContent = descriptionField.value.length;
+            }
+
+            // Prevent double submission
+            const form = document.querySelector('form');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+
+                // Re-enable after 3 seconds in case of validation errors
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Create Category';
+                }, 3000);
+            });
+
+            // Auto-dismiss alerts
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            });
+        });
+    </script>
+}

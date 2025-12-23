@@ -1,0 +1,322 @@
+﻿@model StrateraPos.Models.Supplier
+
+@{
+    ViewData["Title"] = Model?.Id > 0 ? "Edit Supplier" : "Add New Supplier";
+    var isEdit = Model?.Id > 0;
+}
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="bi bi-truck"></i> @ViewData["Title"]
+            </h2>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+
+        <!-- Error Messages -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Error!</strong> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                <strong>Warning!</strong> @TempData["Warning"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" id="supplierForm">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    @if (isEdit)
+                    {
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" asp-for="CurrentBalance" />
+                    }
+
+                    <!-- Basic Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-info-circle text-primary"></i> Basic Information
+                            </h5>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label">
+                                Supplier Name <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control" placeholder="Enter supplier name" autofocus />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="ContactPerson" class="form-label">
+                                Contact Person <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="ContactPerson" class="form-control" placeholder="Enter contact person name" />
+                            <span asp-validation-for="ContactPerson" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Phone" class="form-label">
+                                Phone Number <span class="text-muted">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="Phone" class="form-control" placeholder="+233 24 123 4567" />
+                            </div>
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label">
+                                Email Address <span class="text-muted">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="supplier@example.com" type="email" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TaxId" class="form-label">
+                                Tax ID/TIN <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="TaxId" class="form-control" placeholder="Tax ID/TIN" />
+                            <span asp-validation-for="TaxId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Supplier Status</label>
+                            <div class="form-check form-switch" style="padding-top: 8px;">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" id="activeSwitch" />
+                                <label class="form-check-label ms-2" asp-for="IsActive">
+                                    <strong id="statusLabel">@(Model?.IsActive == true ? "Active" : "Inactive")</strong> Supplier
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Address Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-geo-alt text-primary"></i> Address Information
+                            </h5>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Address" class="form-label">
+                                Physical Address <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter physical address" maxlength="500"></textarea>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                            <div class="form-text">
+                                <span id="addressCharCount">@(Model?.Address?.Length ?? 0)</span>/500 characters
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="City" class="form-label">
+                                City <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="City" class="form-control" placeholder="Enter city" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Country" class="form-label">
+                                Country <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="Country" class="form-control" placeholder="Enter country" value="@(Model?.Country ?? "Ghana")" />
+                            <span asp-validation-for="Country" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Payment & Financial Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-credit-card text-primary"></i> Payment & Financial Information
+                            </h5>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PaymentTerms" class="form-label">
+                                Payment Terms <span class="text-muted">(Optional)</span>
+                            </label>
+                            <select asp-for="PaymentTerms" class="form-select">
+                                <option value="">Select payment terms</option>
+                                <option value="Cash on Delivery">Cash on Delivery</option>
+                                <option value="Net 7">Net 7 Days</option>
+                                <option value="Net 15">Net 15 Days</option>
+                                <option value="Net 30">Net 30 Days</option>
+                                <option value="Net 60">Net 60 Days</option>
+                                <option value="Net 90">Net 90 Days</option>
+                            </select>
+                            <span asp-validation-for="PaymentTerms" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CreditLimit" class="form-label">
+                                Credit Limit (₵) <span class="text-muted">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">₵</span>
+                                <input asp-for="CreditLimit" class="form-control" type="number" step="0.01" placeholder="0.00" min="0" id="creditLimit" />
+                            </div>
+                            <span asp-validation-for="CreditLimit" class="text-danger small"></span>
+                            <small class="text-muted">Maximum amount supplier can be owed</small>
+                        </div>
+
+                        @if (isEdit && Model?.CurrentBalance != 0)
+                        {
+                            <div class="col-md-12 mb-3">
+                                <div class="alert @((Model?.CurrentBalance > 0 ? "alert-danger" : "alert-success") ?? "alert-info") mb-0">
+                                    <strong>Current Balance:</strong>
+                                    @if (Model != null && Model.CurrentBalance > 0)
+                                    {
+                                        <span>₵@Model.CurrentBalance.ToString("N2") (Amount owed to supplier)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>₵@Math.Abs(Model?.CurrentBalance ?? 0).ToString("N2") (Credit from supplier)</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="BankName" class="form-label">
+                                Bank Name <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="BankName" class="form-control" placeholder="Enter bank name" />
+                            <span asp-validation-for="BankName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="AccountNumber" class="form-label">
+                                Account Number <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="AccountNumber" class="form-control" placeholder="Enter account number" />
+                            <span asp-validation-for="AccountNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-sticky text-primary"></i> Additional Information
+                            </h5>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label asp-for="Notes" class="form-label">
+                                Notes <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Enter any additional notes or remarks" maxlength="1000"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger small"></span>
+                            <div class="form-text">
+                                <span id="notesCharCount">@(Model?.Notes?.Length ?? 0)</span>/1000 characters
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn @(isEdit ? "btn-primary" : "btn-success") btn-lg" id="submitBtn">
+                            <i class="bi bi-check-circle"></i> @(isEdit ? "Update Supplier" : "Create Supplier")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character counter for address
+            const addressField = document.querySelector('textarea[name="Address"]');
+            const addressCharCount = document.getElementById('addressCharCount');
+
+            if (addressField && addressCharCount) {
+                addressField.addEventListener('input', function() {
+                    addressCharCount.textContent = this.value.length;
+                });
+            }
+
+            // Character counter for notes
+            const notesField = document.querySelector('textarea[name="Notes"]');
+            const notesCharCount = document.getElementById('notesCharCount');
+
+            if (notesField && notesCharCount) {
+                notesField.addEventListener('input', function() {
+                    notesCharCount.textContent = this.value.length;
+                });
+            }
+
+            // Active status label toggle
+            const activeSwitch = document.getElementById('activeSwitch');
+            const statusLabel = document.getElementById('statusLabel');
+
+            if (activeSwitch && statusLabel) {
+                activeSwitch.addEventListener('change', function() {
+                    statusLabel.textContent = this.checked ? 'Active' : 'Inactive';
+                });
+            }
+
+            // Prevent double submission
+            const form = document.getElementById('supplierForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const isEdit = @(isEdit ? "true" : "false");
+
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>${isEdit ? 'Updating...' : 'Creating...'}`;
+
+                // Re-enable after 3 seconds in case of validation errors
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<i class="bi bi-check-circle"></i> ${isEdit ? 'Update Supplier' : 'Create Supplier'}`;
+                }, 3000);
+            });
+
+            // Auto-dismiss alerts
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            });
+        });
+    </script>
+}

@@ -1,0 +1,356 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    var username = Context.Session.GetString("Username");
+    var fullName = Context.Session.GetString("FullName");
+    var userRole = Context.Session.GetString("UserRole");
+    var isLoggedIn = !string.IsNullOrEmpty(username);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StrateraPOS</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: #1a252f;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+            .sidebar-header h4 {
+                margin: 10px 0 0 0;
+                font-weight: 600;
+                font-size: 1.3rem;
+            }
+
+            .sidebar-header i {
+                font-size: 2.5rem;
+                color: #3498db;
+            }
+
+        .sidebar-menu {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+            .sidebar-menu li {
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+            }
+
+            .sidebar-menu a {
+                display: flex;
+                align-items: center;
+                padding: 15px 20px;
+                color: #ecf0f1;
+                text-decoration: none;
+                transition: all 0.3s;
+            }
+
+                .sidebar-menu a:hover {
+                    background: #34495e;
+                    padding-left: 25px;
+                }
+
+                .sidebar-menu a.active {
+                    background: #3498db;
+                    border-left: 4px solid #2980b9;
+                }
+
+            .sidebar-menu i {
+                margin-right: 12px;
+                font-size: 1.2rem;
+                width: 25px;
+                text-align: center;
+            }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a252f;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-info {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+            .user-details .name {
+                font-weight: 600;
+                font-size: 0.95rem;
+            }
+
+            .user-details .role {
+                font-size: 0.75rem;
+                color: #95a5a6;
+            }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #e74c3c;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+            .logout-btn:hover {
+                background: rgba(231, 76, 60, 0.1);
+                color: #c0392b;
+            }
+
+            .logout-btn i {
+                margin-right: 10px;
+            }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 0;
+            min-height: 100vh;
+            background: #ecf0f1;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .env-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f39c12;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Mobile responsive */
+        @@media (max-width: 768px) {
+            .sidebar {
+                width: 0;
+                overflow: hidden;
+            }
+
+                .sidebar.active {
+                    width: 250px;
+                }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-toggle {
+                display: block !important;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    @if (isLoggedIn)
+    {
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-shop"></i>
+                <h4>Stratera POS</h4>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li>
+                    <a asp-controller="Home" asp-action="Dashboard">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Sales" asp-action="Index">
+                        <i class="bi bi-cart"></i>
+                        <span>Sales</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Products" asp-action="Index">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Products</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Categories" asp-action="Index">
+                        <i class="bi bi-folder"></i>
+                        <span>Categories</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Suppliers" asp-action="Index">
+                        <i class="bi bi-truck"></i>
+                        <span>Suppliers</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-controller="Reports" asp-action="Index">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                @if (userRole == "Admin")
+                {
+                    <li>
+                        <a asp-controller="Users" asp-action="Index">
+                            <i class="bi bi-people"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                }
+                @if (userRole == "Admin")
+                {
+                    <li>
+                        <a asp-controller="Settings" asp-action="Index">
+                            <i class="bi bi-gear"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <div class="sidebar-user">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        @(fullName?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
+                    <div class="user-details">
+                        <div class="name">@fullName</div>
+                        <div class="role">@userRole</div>
+                    </div>
+                </div>
+                <a class="logout-btn" asp-controller="Account" asp-action="Logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h1 class="page-title">@ViewData["Title"]</h1>
+                </div>
+                <div>
+                    <span class="env-badge">Env: Development</span>
+                </div>
+            </div>
+
+            <div class="content-area">
+                @RenderBody()
+            </div>
+
+            <footer class="text-center py-3 text-muted" style="background: white; margin-top: 30px;">
+                &copy; @DateTime.Now.Year - StrateraPOS_System - All rights reserved
+            </footer>
+        </div>
+    }
+    else
+    {
+        <!-- Not logged in - just render body -->
+        @RenderBody()
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // Active menu highlighting
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuLinks = document.querySelectorAll('.sidebar-menu a');
+
+            menuLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

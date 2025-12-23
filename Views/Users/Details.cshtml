@@ -1,0 +1,304 @@
+﻿@model StrateraPos.Models.User
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-person-badge"></i> User Details</h2>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Edit User
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <!-- Status Alerts -->
+        @if (!Model.IsActive)
+        {
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Inactive Account:</strong> This user account is currently inactive and cannot log in.
+            </div>
+        }
+
+        @if (Model.IsLocked)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-lock me-2"></i>
+                <strong>Account Locked:</strong> This account is locked until @Model.LockedUntil.GetValueOrDefault().ToString("MMM dd, yyyy hh:mm tt") due to multiple failed login attempts.
+                <form asp-action="UnlockAccount" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-light ms-2">
+                        <i class="bi bi-unlock"></i> Unlock Account
+                    </button>
+                </form>
+            </div>
+        }
+
+        <!-- User Information Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Full Name:</dt>
+                            <dd class="col-sm-8">
+                                <strong>@Model.FullName</strong>
+                            </dd>
+
+                            <dt class="col-sm-4">Username:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-secondary">@Model.Username</span>
+                            </dd>
+
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">
+                                <a href="mailto:@Model.Email">
+                                    <i class="bi bi-envelope"></i> @Model.Email
+                                </a>
+                            </dd>
+
+                            <dt class="col-sm-5">Phone:</dt>
+                            <dd class="col-sm-7">
+                                @if (!string.IsNullOrWhiteSpace(Model.PhoneNumber))
+                                {
+                                    <a href="tel:@Model.PhoneNumber">
+                                        <i class="bi bi-telephone"></i> @Model.PhoneNumber
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not provided</span>
+                                }
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Role:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.Role == StrateraPos.Models.UserRole.Admin)
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-shield-fill-check"></i> Administrator
+                                    </span>
+                                }
+                                else if (Model.Role == StrateraPos.Models.UserRole.Manager)
+                                {
+                                    <span class="badge bg-warning">
+                                        <i class="bi bi-person-badge"></i> Manager
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">
+                                        <i class="bi bi-person"></i> Cashier
+                                    </span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-x-circle"></i> Inactive
+                                    </span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-4">Account Locked:</dt>
+                            <dd class="col-sm-8">
+                                @if (Model.IsLocked)
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-lock"></i> Yes
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-unlock"></i> No
+                                    </span>
+                                }
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Activity Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Account Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Created Date:</dt>
+                            <dd class="col-sm-7">
+                                <i class="bi bi-calendar-plus text-success"></i>
+                                @Model.CreatedAt.ToString("MMMM dd, yyyy")
+                                <br />
+                                <small class="text-muted">@Model.CreatedAt.ToString("hh:mm tt")</small>
+                            </dd>
+
+                            <dt class="col-sm-5">Last Login:</dt>
+                            <dd class="col-sm-7">
+                                @if (Model.LastLoginAt.HasValue)
+                                {
+                                    <i class="bi bi-box-arrow-in-right text-primary"></i>
+                                    @Model.LastLoginAt.Value.ToString("MMMM dd, yyyy")
+                                    <br />
+                                    <small class="text-muted">@Model.LastLoginAt.Value.ToString("hh:mm tt")</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Never logged in</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-5">Last Updated:</dt>
+                            <dd class="col-sm-7">
+                                @if (Model.UpdatedAt.HasValue)
+                                {
+                                    <i class="bi bi-pencil-square text-warning"></i>
+                                    @Model.UpdatedAt.Value.ToString("MMMM dd, yyyy")
+                                    <br />
+                                    <small class="text-muted">@Model.UpdatedAt.Value.ToString("hh:mm tt")</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Never updated</span>
+                                }
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Failed Login Attempts:</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge @(Model.FailedLoginAttempts > 0 ? "bg-danger" : "bg-success") fs-6">
+                                    @Model.FailedLoginAttempts
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-5">Locked Until:</dt>
+                            <dd class="col-sm-7">
+                                @if (Model.LockedUntil.HasValue)
+                                {
+                                    <i class="bi bi-lock text-danger"></i>
+                                    @Model.LockedUntil.Value.ToString("MMMM dd, yyyy")
+                                    <br />
+                                    <small class="text-muted">@Model.LockedUntil.Value.ToString("hh:mm tt")</small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not locked</span>
+                                }
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Permissions Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-shield"></i> Role Permissions</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.Role == StrateraPos.Models.UserRole.Admin)
+                {
+                    <h6 class="mb-3">Administrator Permissions:</h6>
+                    <ul>
+                        <li><i class="bi bi-check-circle text-success"></i> Full system access</li>
+                        <li><i class="bi bi-check-circle text-success"></i> User management (create, edit, delete users)</li>
+                        <li><i class="bi bi-check-circle text-success"></i> System settings and configuration</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Products, categories, and suppliers management</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Sales processing (POS)</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Reports and analytics</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Inventory management</li>
+                    </ul>
+                }
+                else if (Model.Role == StrateraPos.Models.UserRole.Manager)
+                {
+                    <h6 class="mb-3">Manager Permissions:</h6>
+                    <ul>
+                        <li><i class="bi bi-check-circle text-success"></i> Products, categories, and suppliers management</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Sales processing (POS)</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Reports and analytics</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Inventory management</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot manage users</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot access system settings</li>
+                    </ul>
+                }
+                else
+                {
+                    <h6 class="mb-3">Cashier Permissions:</h6>
+                    <ul>
+                        <li><i class="bi bi-check-circle text-success"></i> Sales processing (POS) only</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot manage products or inventory</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot manage suppliers</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot view reports</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot manage users</li>
+                        <li><i class="bi bi-x-circle text-danger"></i> Cannot access system settings</li>
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="mb-3"><i class="bi bi-gear"></i> User Actions</h6>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Edit User
+                    </a>
+                    <a asp-action="ResetPassword" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="bi bi-key"></i> Reset Password
+                    </a>
+                    @if (Model.IsLocked)
+                    {
+                        <form asp-action="UnlockAccount" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to unlock this account?')">
+                                <i class="bi bi-unlock"></i> Unlock Account
+                            </button>
+                        </form>
+                    }
+                    <form asp-action="ToggleStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn @(Model.IsActive ? "btn-secondary" : "btn-success")" onclick="return confirm('Are you sure you want to @(Model.IsActive ? "deactivate" : "activate") this user?')">
+                            <i class="bi bi-@(Model.IsActive ? "toggle-off" : "toggle-on")"></i> @(Model.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                    </form>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

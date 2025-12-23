@@ -1,0 +1,393 @@
+﻿@model IEnumerable<StrateraPos.Models.Supplier>
+
+@{
+    ViewData["Title"] = "Suppliers";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-truck"></i> Supplier Management</h2>
+    <a asp-action="Create" class="btn btn-success btn-lg">
+        <i class="bi bi-plus-circle"></i> Add New Supplier
+    </a>
+</div>
+
+<!-- Toast Notifications -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Success!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle-fill me-2"></i>
+        <strong>Warning!</strong> @TempData["Warning"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Search and Filter -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Search by name, contact person, phone, or email..."
+                           value="@ViewBag.Search">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="isActive" class="form-select">
+                    <option value="">All Suppliers</option>
+                    @if (ViewBag.IsActive == true)
+                    {
+                        <option value="true" selected>Active Only</option>
+                    }
+                    else
+                    {
+                        <option value="true">Active Only</option>
+                    }
+                    @if (ViewBag.IsActive == false)
+                    {
+                        <option value="false" selected>Inactive Only</option>
+                    }
+                    else
+                    {
+                        <option value="false">Inactive Only</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Suppliers Table -->
+<div class="card shadow-sm">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Contact Person</th>
+                            <th>Phone</th>
+                            <th>Email</th>
+                            <th>Payment Terms</th>
+                            <th>Products</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var supplier in Model)
+                        {
+                            <tr class="@(supplier.IsOverCreditLimit ? "table-danger" : "")">
+                                <td><strong>#@supplier.Id</strong></td>
+                                <td>
+                                    <strong>@supplier.Name</strong>
+                                    @if (!string.IsNullOrEmpty(supplier.City))
+                                    {
+                                        <br>
+                                        <small class="text-muted"><i class="bi bi-geo-alt"></i> @supplier.City@(!string.IsNullOrEmpty(supplier.Country) ? $", {supplier.Country}" : "")</small>
+                                    }
+                                    @if (supplier.IsOverCreditLimit)
+                                    {
+                                        <br>
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-exclamation-triangle"></i> Over Credit Limit
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(supplier.ContactPerson))
+                                    {
+                                        @supplier.ContactPerson
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(supplier.Phone))
+                                    {
+                                        <a href="tel:@supplier.Phone" class="text-decoration-none">
+                                            <i class="bi bi-telephone"></i> @supplier.Phone
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(supplier.Email))
+                                    {
+                                        <a href="mailto:@supplier.Email" class="text-decoration-none">
+                                            <i class="bi bi-envelope"></i> @supplier.Email
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(supplier.PaymentTerms))
+                                    {
+                                        <span class="badge bg-info">@supplier.PaymentTerms</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        @supplier.Products.Count product@(supplier.Products.Count != 1 ? "s" : "")
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (supplier.CurrentBalance > 0)
+                                    {
+                                        <span class="text-danger fw-bold" title="Amount owed to supplier">
+                                            <i class="bi bi-arrow-down-circle"></i> ₵@supplier.CurrentBalance.ToString("N2")
+                                        </span>
+                                    }
+                                    else if (supplier.CurrentBalance < 0)
+                                    {
+                                        <span class="text-success fw-bold" title="Credit from supplier">
+                                            <i class="bi bi-arrow-up-circle"></i> ₵@Math.Abs(supplier.CurrentBalance).ToString("N2")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">₵0.00</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (supplier.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Active
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-x-circle"></i> Inactive
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@supplier.Id"
+                                           class="btn btn-sm btn-outline-info"
+                                           title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@supplier.Id"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button onclick="toggleStatus(@supplier.Id, '@Html.Raw(supplier.Name.Replace("'", "\\'"))')"
+                                                class="btn btn-sm btn-outline-warning"
+                                                title="Toggle Status">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </button>
+                                        <button onclick="deleteSupplier(@supplier.Id, '@Html.Raw(supplier.Name.Replace("'", "\\'"))')"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h5 class="mb-0">@Model.Count()</h5>
+                            <small class="text-muted">Total Suppliers</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h5 class="mb-0">@Model.Count(s => s.IsActive)</h5>
+                            <small>Active Suppliers</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body text-center">
+                            <h5 class="mb-0">@Model.Count(s => s.CurrentBalance > 0)</h5>
+                            <small>With Outstanding Balance</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning">
+                        <div class="card-body text-center">
+                            <h5 class="mb-0">@Model.Count(s => s.IsOverCreditLimit)</h5>
+                            <small>Over Credit Limit</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h4 class="mt-3 text-muted">No Suppliers Found</h4>
+                <p class="text-muted">
+                    @if (!string.IsNullOrEmpty(ViewBag.Search) || ViewBag.IsActive != null)
+                    {
+                        <text>Try adjusting your search or filter criteria</text>
+                    }
+                    else
+                    {
+                        <text>Start by adding your first supplier</text>
+                    }
+                </p>
+                <a asp-action="Create" class="btn btn-success btn-lg mt-3">
+                    <i class="bi bi-plus-circle"></i> Add Supplier
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Get anti-forgery token
+        function getAntiForgeryToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        }
+
+        function toggleStatus(id, name) {
+            if (!confirm(`Toggle status for supplier "${name}"?`)) return;
+
+            fetch('/Suppliers/ToggleStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: JSON.stringify(id)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'An error occurred while toggling supplier status. Please try again.');
+            });
+        }
+
+        function deleteSupplier(id, name) {
+            if (!confirm(`Are you sure you want to delete supplier "${name}"?\n\nThis action cannot be undone.`)) return;
+
+            fetch('/Suppliers/Delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `id=${id}&__RequestVerificationToken=${encodeURIComponent(getAntiForgeryToken())}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', data.message);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('error', 'An error occurred while deleting the supplier. Please try again.');
+            });
+        }
+
+        function showToast(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+            const title = type === 'success' ? 'Success!' : 'Error!';
+
+            const toast = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="bi ${icon} me-2"></i>
+                    <strong>${title}</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            const container = document.querySelector('.container');
+            container.insertAdjacentHTML('afterbegin', toast);
+
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alertElement = container.querySelector('.alert');
+                if (alertElement) {
+                    alertElement.classList.remove('show');
+                    setTimeout(() => alertElement.remove(), 150);
+                }
+            }, 5000);
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            });
+        });
+    </script>
+
+    <!-- Anti-forgery token for AJAX requests -->
+    @Html.AntiForgeryToken()
+}

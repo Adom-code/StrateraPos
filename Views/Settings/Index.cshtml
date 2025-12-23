@@ -1,0 +1,185 @@
+﻿@model StrateraPOS_System.Models.BusinessSettings
+
+@{
+    ViewData["Title"] = "Business Settings";
+}
+
+<div class="container-fluid p-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-cog"></i> Business Settings</h2>
+                <a asp-controller="Home" asp-action="Dashboard" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card shadow">
+                <div class="card-body">
+                    <form asp-action="Update" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+
+                        <!-- Business Information Section -->
+                        <div class="mb-4">
+                            <h4 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-building"></i> Business Information
+                            </h4>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="BusinessName" class="form-label">Business Name *</label>
+                                    <input asp-for="BusinessName" class="form-control" placeholder="Enter business name" required />
+                                    <span asp-validation-for="BusinessName" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Contact" class="form-label">Contact Number</label>
+                                    <input asp-for="Contact" class="form-control" placeholder="e.g., +233 24 123 4567" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Address" class="form-label">Address</label>
+                                <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter business address"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Business Logo</label>
+                                @if (!string.IsNullOrEmpty(Model.LogoPath))
+                                {
+                                    <div class="mb-2">
+                                        <img src="@Model.LogoPath" alt="Current Logo" style="max-height: 100px;" class="border rounded p-2" />
+                                        <p class="text-muted small mb-0">Current Logo</p>
+                                    </div>
+                                }
+                                <input type="file" name="logoFile" class="form-control" accept="image/*" />
+                                <small class="text-muted">Upload a new logo (PNG, JPG, or GIF)</small>
+                            </div>
+                        </div>
+
+                        <!-- Tax & Service Charge Section -->
+                        <div class="mb-4">
+                            <h4 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-percent"></i> Tax & Service Charge
+                            </h4>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="TaxPercentage" class="form-label">Tax Percentage (%)</label>
+                                    <input asp-for="TaxPercentage" class="form-control" type="number" step="0.01" min="0" max="100" placeholder="0.00" />
+                                    <small class="text-muted">e.g., 15 for 15% tax</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="ServiceChargePercentage" class="form-label">Service Charge (%)</label>
+                                    <input asp-for="ServiceChargePercentage" class="form-control" type="number" step="0.01" min="0" max="100" placeholder="0.00" />
+                                    <small class="text-muted">e.g., 10 for 10% service charge</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Currency Section -->
+                        <div class="mb-4">
+                            <h4 class="border-bottom pb-2 mb-3">
+                                <i class="fas fa-money-bill-wave"></i> Currency Settings
+                            </h4>
+
+                            <div class="mb-3">
+                                <label for="currencySelector" class="form-label">Quick Select Currency (Optional)</label>
+                                <select id="currencySelector" class="form-control">
+                                    <option value="">-- Select a common currency --</option>
+                                    <option value="GHS|₵">🇬🇭 Ghana Cedi (GHS - ₵)</option>
+                                    <option value="USD|$">🇺🇸 US Dollar (USD - $)</option>
+                                    <option value="GBP|£">🇬🇧 British Pound (GBP - £)</option>
+                                    <option value="EUR|€">🇪🇺 Euro (EUR - €)</option>
+                                    <option value="NGN|₦">🇳🇬 Nigerian Naira (NGN - ₦)</option>
+                                    <option value="ZAR|R">🇿🇦 South African Rand (ZAR - R)</option>
+                                    <option value="KES|KSh">🇰🇪 Kenyan Shilling (KES - KSh)</option>
+                                    <option value="JPY|¥">🇯🇵 Japanese Yen (JPY - ¥)</option>
+                                    <option value="CNY|¥">🇨🇳 Chinese Yuan (CNY - ¥)</option>
+                                    <option value="INR|₹">🇮🇳 Indian Rupee (INR - ₹)</option>
+                                    <option value="CAD|$">🇨🇦 Canadian Dollar (CAD - $)</option>
+                                    <option value="AUD|$">🇦🇺 Australian Dollar (AUD - $)</option>
+                                </select>
+                                <small class="text-muted">Or enter custom currency below</small>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CurrencyCode" class="form-label">Currency Code *</label>
+                                    <input asp-for="CurrencyCode" class="form-control" placeholder="e.g., GHS, USD, EUR" required />
+                                    <small class="text-muted">3-letter ISO currency code</small>
+                                    <span asp-validation-for="CurrencyCode" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CurrencySymbol" class="form-label">Currency Symbol *</label>
+                                    <input asp-for="CurrencySymbol" class="form-control" placeholder="e.g., ₵, $, £, €" required />
+                                    <small class="text-muted">Symbol displayed on invoices and receipts</small>
+                                    <span asp-validation-for="CurrencySymbol" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Preview:</strong> Prices will be displayed as:
+                                <span id="currencyPreview" class="fw-bold">@Model.CurrencySymbol 100.00</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-fill currency fields when selecting from dropdown
+        document.getElementById('currencySelector').addEventListener('change', function() {
+            if (this.value) {
+                const [code, symbol] = this.value.split('|');
+                document.getElementById('CurrencyCode').value = code;
+                document.getElementById('CurrencySymbol').value = symbol;
+                updateCurrencyPreview();
+            }
+        });
+
+        // Update currency preview when typing
+        document.getElementById('CurrencySymbol').addEventListener('input', updateCurrencyPreview);
+
+        function updateCurrencyPreview() {
+            const symbol = document.getElementById('CurrencySymbol').value || '₵';
+            document.getElementById('currencyPreview').textContent = symbol + ' 100.00';
+        }
+
+        // Initialize preview
+        updateCurrencyPreview();
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

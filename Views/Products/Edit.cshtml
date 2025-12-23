@@ -1,0 +1,326 @@
+﻿@model StrateraPos.Models.Product
+
+@{
+    ViewData["Title"] = "Edit Product";
+    var categories = ViewBag.Categories as List<StrateraPos.Models.Category>;
+    var suppliers = ViewBag.Suppliers as List<StrateraPos.Models.Supplier>;
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <!-- Error Messages -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Error!</strong> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                <strong>Warning!</strong> @TempData["Warning"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Product</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" id="productForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CreatedAt" />
+
+                    <!-- Validation Summary -->
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <div class="row g-3">
+                        <!-- Product Name -->
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label">
+                                Product Name <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control"
+                                   placeholder="e.g. Coca Cola 500ml"
+                                   autofocus />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Barcode -->
+                        <div class="col-md-6">
+                            <label asp-for="Barcode" class="form-label">
+                                Barcode <span class="text-muted">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                                <input asp-for="Barcode" class="form-control"
+                                       placeholder="Scan or enter barcode" />
+                            </div>
+                            <span asp-validation-for="Barcode" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">
+                                Description <span class="text-muted">(Optional)</span>
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="2"
+                                      placeholder="Brief product description"
+                                      maxlength="500"></textarea>
+                            <div class="form-text">
+                                <span id="descCharCount">@(Model.Description?.Length ?? 0)</span>/500 characters
+                            </div>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-md-6">
+                            <label asp-for="CategoryId" class="form-label">
+                                Category <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="CategoryId" class="form-select">
+                                <option value="">-- Select Category --</option>
+                                @if (categories != null)
+                                {
+                                    @foreach (var cat in categories)
+                                    {
+                                        <option value="@cat.Id">@cat.Name</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Supplier -->
+                        <div class="col-md-6">
+                            <label asp-for="SupplierId" class="form-label">
+                                Supplier <span class="text-muted">(Optional)</span>
+                            </label>
+                            <select asp-for="SupplierId" class="form-select">
+                                <option value="">-- Select Supplier --</option>
+                                @if (suppliers != null)
+                                {
+                                    @foreach (var sup in suppliers)
+                                    {
+                                        <option value="@sup.Id">@sup.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="col-md-4">
+                            <label asp-for="Price" class="form-label">
+                                Selling Price (₵) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">₵</span>
+                                <input asp-for="Price" type="number" step="0.01" class="form-control"
+                                       placeholder="0.00" min="0.01" id="sellingPrice" />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Cost Price -->
+                        <div class="col-md-4">
+                            <label asp-for="CostPrice" class="form-label">
+                                Cost Price (₵) <span class="text-muted">(Optional)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">₵</span>
+                                <input asp-for="CostPrice" type="number" step="0.01" class="form-control"
+                                       placeholder="0.00" min="0" id="costPrice" />
+                            </div>
+                            <small class="text-muted">For profit tracking</small>
+                        </div>
+
+                        <!-- Stock Quantity -->
+                        <div class="col-md-4">
+                            <label asp-for="Stock" class="form-label">
+                                Current Stock <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Stock" type="number" class="form-control"
+                                   placeholder="0" min="0" />
+                            <span asp-validation-for="Stock" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Low Stock Threshold -->
+                        <div class="col-md-6">
+                            <label asp-for="LowStockThreshold" class="form-label">
+                                Low Stock Alert Level <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="LowStockThreshold" type="number" class="form-control"
+                                   placeholder="10" min="0" />
+                            <small class="text-muted">Get notified when stock falls below this number</small>
+                        </div>
+
+                        <!-- Unit -->
+                        <div class="col-md-6">
+                            <label asp-for="Unit" class="form-label">
+                                Unit of Measure <span class="text-muted">(Optional)</span>
+                            </label>
+                            <select asp-for="Unit" class="form-select">
+                                <option value="">-- Select Unit --</option>
+                                <option value="Piece">Piece</option>
+                                <option value="Box">Box</option>
+                                <option value="Pack">Pack</option>
+                                <option value="Carton">Carton</option>
+                                <option value="Bottle">Bottle</option>
+                                <option value="Can">Can</option>
+                                <option value="Kg">Kilogram (Kg)</option>
+                                <option value="Litre">Litre</option>
+                                <option value="Meter">Meter</option>
+                            </select>
+                        </div>
+
+                        <!-- Expiry Date -->
+                        <div class="col-md-6">
+                            <label asp-for="ExpiryDate" class="form-label">
+                                Expiry Date <span class="text-muted">(Optional)</span>
+                            </label>
+                            <input asp-for="ExpiryDate" type="date" class="form-control" />
+                            <small class="text-muted">For perishable items</small>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="col-md-6">
+                            <label class="form-label">Product Status</label>
+                            <div class="form-check form-switch" style="padding-top: 8px;">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" id="activeSwitch" />
+                                <label asp-for="IsActive" class="form-check-label ms-2">
+                                    <strong id="statusLabel">@(Model.IsActive ? "Active" : "Inactive")</strong> (Available for Sale)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Profit Margin Display -->
+                        <div class="col-12" id="profitMarginAlert" style="display: none;">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Profit Margin:</strong> <span id="profitMarginValue">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Last Updated Info -->
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-light mb-0">
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock-history"></i>
+                                        Last updated: @Model.UpdatedAt.Value.ToString("MMM dd, yyyy hh:mm tt")
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Form Actions -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="bi bi-check-circle"></i> Update Product
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character counter for description
+            const descField = document.querySelector('textarea[name="Description"]');
+            const descCharCount = document.getElementById('descCharCount');
+
+            if (descField && descCharCount) {
+                descField.addEventListener('input', function() {
+                    descCharCount.textContent = this.value.length;
+                });
+            }
+
+            // Calculate profit margin
+            const sellingPrice = document.getElementById('sellingPrice');
+            const costPrice = document.getElementById('costPrice');
+            const profitMarginAlert = document.getElementById('profitMarginAlert');
+            const profitMarginValue = document.getElementById('profitMarginValue');
+
+            function calculateProfit() {
+                const selling = parseFloat(sellingPrice.value) || 0;
+                const cost = parseFloat(costPrice.value) || 0;
+
+                if (selling > 0 && cost > 0) {
+                    const margin = ((selling - cost) / selling * 100).toFixed(2);
+                    profitMarginValue.textContent = margin + '%';
+                    profitMarginAlert.style.display = 'block';
+
+                    if (selling < cost) {
+                        profitMarginAlert.classList.remove('alert-info');
+                        profitMarginAlert.classList.add('alert-warning');
+                        profitMarginValue.parentElement.innerHTML = '<strong>Warning:</strong> Selling price is lower than cost price (Loss: ' + Math.abs(margin) + '%)';
+                    } else {
+                        profitMarginAlert.classList.remove('alert-warning');
+                        profitMarginAlert.classList.add('alert-info');
+                        profitMarginValue.parentElement.innerHTML = '<strong>Profit Margin:</strong> <span id="profitMarginValue">' + margin + '%</span>';
+                    }
+                } else {
+                    profitMarginAlert.style.display = 'none';
+                }
+            }
+
+            // Calculate on load
+            calculateProfit();
+
+            sellingPrice?.addEventListener('input', calculateProfit);
+            costPrice?.addEventListener('input', calculateProfit);
+
+            // Active status label toggle
+            const activeSwitch = document.getElementById('activeSwitch');
+            const statusLabel = document.getElementById('statusLabel');
+
+            activeSwitch?.addEventListener('change', function() {
+                statusLabel.textContent = this.checked ? 'Active' : 'Inactive';
+            });
+
+            // Prevent double submission
+            const form = document.getElementById('productForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+
+                // Re-enable after 3 seconds in case of validation errors
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> Update Product';
+                }, 3000);
+            });
+
+            // Auto-dismiss alerts
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            });
+        });
+    </script>
+}

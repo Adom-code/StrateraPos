@@ -1,0 +1,522 @@
+﻿@model IEnumerable<StrateraPos.Models.Sale>
+
+@{
+    ViewData["Title"] = "Reports & Analytics";
+    var settings = ViewBag.Settings as StrateraPOS_System.Models.BusinessSettings;
+    var currencySymbol = settings?.CurrencySymbol ?? "₵";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-graph-up"></i> Reports & Analytics</h2>
+    <div>
+        <button class="btn btn-success" onclick="exportSales()">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Export Sales
+        </button>
+        <button class="btn btn-info" onclick="exportInventory()">
+            <i class="bi bi-box-seam"></i> Export Inventory
+        </button>
+    </div>
+</div>
+
+<!-- Toast Notifications -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Success!</strong> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Error!</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Report Type & Date Range Filter -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3" id="reportForm">
+            <div class="col-md-3">
+                <label class="form-label">Report Period</label>
+                <select name="reportType" class="form-select" id="reportType">
+                    <!option value="daily" @(ViewBag.ReportType == "daily" ? "selected" : "")>Today</!option>
+                    <!option value="weekly" @(ViewBag.ReportType == "weekly" ? "selected" : "")>This Week</!option>
+                    <!option value="monthly" @(ViewBag.ReportType == "monthly" ? "selected" : "")>This Month</!option>
+                    <!option value="yearly" @(ViewBag.ReportType == "yearly" ? "selected" : "")>This Year</!option>
+                    <!option value="custom" @(ViewBag.ReportType == "custom" ? "selected" : "")>Custom Range</!option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="startDate" class="form-control"
+                       value="@ViewBag.StartDate.ToString("yyyy-MM-dd")"
+                       id="startDate"
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="endDate" class="form-control"
+                       value="@ViewBag.EndDate.ToString("yyyy-MM-dd")"
+                       id="endDate"
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Generate Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm h-100 border-start border-success border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Total Sales</p>
+                        <h3 class="mb-0 text-success">@currencySymbol@ViewBag.TotalSales.ToString("N2")</h3>
+                    </div>
+                    <div class="text-success">
+                        <i class="bi bi-cash-stack" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm h-100 border-start border-primary border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Transactions</p>
+                        <h3 class="mb-0 text-primary">@ViewBag.TotalTransactions</h3>
+                    </div>
+                    <div class="text-primary">
+                        <i class="bi bi-receipt" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm h-100 border-start border-info border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Estimated Profit</p>
+                        <h3 class="mb-0 text-info">@currencySymbol@ViewBag.TotalProfit.ToString("N2")</h3>
+                        <small class="text-muted">@ViewBag.ProfitMargin.ToString("F1")% margin</small>
+                    </div>
+                    <div class="text-info">
+                        <i class="bi bi-graph-up-arrow" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm h-100 border-start border-warning border-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="text-muted mb-1 small">Revenue</p>
+                        <h3 class="mb-0 text-warning">@currencySymbol@ViewBag.TotalRevenue.ToString("N2")</h3>
+                    </div>
+                    <div class="text-warning">
+                        <i class="bi bi-currency-dollar" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Detailed Reports -->
+<div class="row mb-4">
+    <!-- Sales Trend Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart-line"></i> Sales Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="salesTrendChart"
+                        height="80"
+                        data-sales='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.DailySales))'
+                        data-currency="@currencySymbol"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-credit-card"></i> Payment Methods</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="paymentMethodsChart"
+                        data-payments='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.PaymentMethods))'
+                        data-currency="@currencySymbol"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Selling Products & Stock Status -->
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-trophy-fill"></i> Top 10 Best Selling Products</h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.BestSellingProducts != null && ViewBag.BestSellingProducts.Count > 0)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Product</th>
+                                    <th class="text-center">Qty Sold</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var rank = 1;
+                                }
+                                @foreach (var product in ViewBag.BestSellingProducts)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (rank <= 3)
+                                            {
+                                                <i class="bi bi-trophy-fill text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <text>@rank</text>
+                                            }
+                                        </td>
+                                        <td><strong>@product.ProductName</strong></td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary">@product.TotalQuantity</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-success">@currencySymbol@product.TotalRevenue.ToString("N2")</strong>
+                                        </td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-2">No sales data for this period</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Status -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-box-seam"></i> Inventory Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="card bg-light">
+                            <div class="card-body text-center py-3">
+                                <h4 class="mb-0">@ViewBag.TotalProducts</h4>
+                                <small class="text-muted">Total Products</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center py-3">
+                                <h4 class="mb-0">@currencySymbol@ViewBag.TotalStockValue.ToString("N0")</h4>
+                                <small>Stock Value</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-danger">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Out of Stock
+                        </span>
+                        <strong class="text-danger fs-5">@ViewBag.OutOfStockProducts.Count</strong>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-warning">
+                            <i class="bi bi-exclamation-circle-fill"></i> Low Stock
+                        </span>
+                        <strong class="text-warning fs-5">@ViewBag.LowStockProducts.Count</strong>
+                    </div>
+                </div>
+
+                <a asp-action="StockReport" class="btn btn-warning w-100">
+                    <i class="bi bi-eye"></i> View Detailed Stock Report
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="card shadow-sm">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Transactions (Last 15)</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Receipt #</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Payment</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sale in Model.Take(15))
+                        {
+                            <tr>
+                                <td><strong>@sale.ReceiptNumber</strong></td>
+                                <td>
+                                    @sale.Date.ToString("MMM dd, yyyy")
+                                    <br>
+                                    <small class="text-muted">@sale.Date.ToString("hh:mm tt")</small>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(sale.CustomerContact))
+                                    {
+                                        @sale.CustomerContact
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Walk-in</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        @sale.Items.Sum(i => i.Quantity) unit(s)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">@sale.PaymentMethod</span>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="text-success">@currencySymbol@sale.GrandTotal.ToString("N2")</strong>
+                                </td>
+                                <td class="text-center">
+                                    <a asp-controller="Sales"
+                                       asp-action="Receipt"
+                                       asp-route-id="@sale.Id"
+                                       href="#"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-sm btn-outline-primary"
+                                       title="View Receipt">
+                                        <i class="bi bi-receipt"></i>
+                                    </a>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h5 class="mt-3">No transactions found for this period</h5>
+                <p>Try adjusting the date range</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Auto-dismiss alerts
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 5000);
+            });
+        });
+
+              // Sales Trend Chart
+        const salesTrendCanvas = document.getElementById('salesTrendChart');
+        const salesTrendData = JSON.parse(salesTrendCanvas.dataset.sales);
+        const currencySymbol = salesTrendCanvas.dataset.currency;
+
+        if (salesTrendData && salesTrendData.length > 0) {
+            const salesLabels = salesTrendData.map(d => {
+                const date = new Date(d.Date);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
+            const salesValues = salesTrendData.map(d => d.TotalSales);
+
+            new Chart(salesTrendCanvas, {
+                type: 'line',
+                data: {
+                    labels: salesLabels,
+                    datasets: [{
+                        label: 'Daily Sales',
+                        data: salesValues,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Sales: ' + currencySymbol + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return currencySymbol + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Payment Methods Chart
+        const paymentCanvas = document.getElementById('paymentMethodsChart');
+        const paymentData = JSON.parse(paymentCanvas.dataset.payments);
+
+        if (paymentData && paymentData.length > 0) {
+            const paymentLabels = paymentData.map(p => p.method);
+            const paymentValues = paymentData.map(p => p.total);
+
+            new Chart(paymentCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: paymentLabels,
+                    datasets: [{
+                        data: paymentValues,
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = currencySymbol + context.parsed.toFixed(2);
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Export functions
+        function exportSales() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            window.location.href = `/Reports/ExportSalesCSV?startDate=${startDate}&endDate=${endDate}`;
+        }
+
+        function exportInventory() {
+            window.location.href = '/Reports/ExportInventoryCSV';
+        }
+
+        // Auto-adjust date fields based on report type
+        document.getElementById('reportType').addEventListener('change', function() {
+            if (this.value !== 'custom') {
+                document.getElementById('reportForm').submit();
+            }
+        });
+
+        // Validate date range
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        endDateInput.addEventListener('change', function() {
+            if (this.value < startDateInput.value) {
+                alert('End date cannot be before start date');
+                this.value = startDateInput.value;
+            }
+        });
+    </script>
+}
