@@ -32,6 +32,8 @@
             overflow-y: auto;
             z-index: 1000;
             transition: all 0.3s;
+            display: flex; /* ADD THIS */
+            flex-direction: column; /* ADD THIS */
         }
 
         .sidebar-header {
@@ -89,12 +91,15 @@
             }
 
         .sidebar-user {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            /* Remove these lines: */
+            /* position: absolute; */
+            /* bottom: 0; */
+            /* left: 0; */
+            /* right: 0; */
+            /* Keep these: */
             background: #1a252f;
             border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: auto; /* ADD THIS */
         }
 
         .user-info {
@@ -264,7 +269,8 @@
                         <span>Reports</span>
                     </a>
                 </li>
-                @if (userRole == "Admin")
+               
+                @if (userRole?.Contains("Admin") == true)
                 {
                     <li>
                         <a asp-controller="Users" asp-action="Index">
@@ -272,9 +278,6 @@
                             <span>Users</span>
                         </a>
                     </li>
-                }
-                @if (userRole == "Admin")
-                {
                     <li>
                         <a asp-controller="Settings" asp-action="Index">
                             <i class="bi bi-gear"></i>

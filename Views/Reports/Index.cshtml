@@ -341,16 +341,14 @@
                                     <strong class="text-success">@currencySymbol@sale.GrandTotal.ToString("N2")</strong>
                                 </td>
                                 <td class="text-center">
-                                    <a asp-controller="Sales"
-                                       asp-action="Receipt"
-                                       asp-route-id="@sale.Id"
-                                       href="#"
+                                    <a href="@Url.Action("Receipt", "Sales", new { id = sale.Id })"
                                        target="_blank"
                                        rel="noopener noreferrer"
                                        class="btn btn-sm btn-outline-primary"
                                        title="View Receipt">
                                         <i class="bi bi-receipt"></i>
                                     </a>
+
 
                                 </td>
                             </tr>
